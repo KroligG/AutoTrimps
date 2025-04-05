@@ -1,6 +1,6 @@
 var ATversion = 'Zek v5.1.0',
     atscript = document.getElementById('AutoTrimps-script'),
-    basepath = 'https://Zorn192.github.io/AutoTrimps/', //Link to your own Github here if you forked!
+    basepath = 'https://kroligg.github.io/AutoTrimps/', //Link to your own Github here if you forked!
     modulepath = 'modules/';
 null !== atscript && (basepath = atscript.src.replace(/AutoTrimps2\.js$/, ''));
 
@@ -34,10 +34,16 @@ function initializeAutoTrimps() {
 
 var changelogList = [];
 changelogList.push({
+    date: "03/05/2025",
+    version: "v5.10.1",
+    description: "<b>Trimps v5.10.1</b> Add Heirloom Swap ",
+    isNew: true
+});
+changelogList.push({
     date: "11/02/2023",
     version: "v5.2.0",
     description: "<b>Trimps v5.9.0</b> Added Frigid to calc. Added Desolation AutoDeso. Added mutations to calc. ",
-    isNew: true
+    isNew: false
 });
 changelogList.push({
     date: "13/11/2022",
@@ -67,7 +73,7 @@ function printChangelog() {
         '<b>ZӘK Fork</b> - <u>Report any bugs/problems please</u>!\
         <br>Talk with the dev: <b>Zek#0647</b> @ <a target="#" href="https://discord.gg/Ztcnfjr">Zeks Discord Channel</a>\
         <br>Talk with the other Trimpers: <a target="Trimps" href="https://discord.gg/trimps">Trimps Discord Channel</a>\
-        <br>See <a target="#" href="https://github.com/Zorn192/AutoTrimps/blob/gh-pages/README.md">ReadMe</a> Or check <a target="#" href="https://github.com/Zorn192/AutoTrimps/commits/gh-pages" target="#">the commit history</a> (if you want).',
+        <br>See <a target="#" href="https://github.com/kroligg/AutoTrimps/blob/gh-pages/README.md">ReadMe</a> Or check <a target="#" href="https://github.com/kroligg/AutoTrimps/commits/gh-pages" target="#">the commit history</a> (if you want).',
         action = 'cancelTooltip()',
         title = 'Script Update Notice<br>' + ATversion,
         acceptBtnText = "Thank you for playing AutoTrimps. Accept and Continue.",
@@ -168,7 +174,7 @@ function mainLoop() {
     if (game.global.world != autoTrimpSettings.zonetracker) {
         autoTrimpSettings.zonetracker = game.global.world;
     }
-    
+
     //Universal Logic
     if (getPageSetting('AutoBoneChargeMax') != 0) autoBoneChargeWhenMax();
 
@@ -180,9 +186,13 @@ function mainLoop() {
             setScienceNeeded();
             autoLevelEquipment();
         }
-        
+
         //Heirloom Shield Swap Check
 		if (shieldEquipped !== game.global.ShieldEquipped.id) HeirloomShieldSwapped();
+
+        if (getPageSetting('VoidMapHeirloomSwap')) {
+            VoidMapHeirloomSwap(); // Make sure this calls the corrected function
+        }
 
         //Core
         if (getPageSetting('AutoMaps') > 0 && game.global.mapsUnlocked) autoMap();
@@ -282,7 +292,7 @@ function mainLoop() {
         if (!usingRealTimeOffline) {
             RsetScienceNeeded();
         }
-        
+
         //Heirloom Shield Swap Check
 		if (shieldEquipped !== game.global.ShieldEquipped.id) HeirloomShieldSwapped();
 

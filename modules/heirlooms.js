@@ -243,7 +243,7 @@ function calcLoomNuInfinity(slot) {
 	var heirloom = getSelectedHeirloom();
 	if (Math.ceil(getModUpgradeCost(heirloom, slot, 1)) != "Infinity") {
 		return true;
-	} else { 
+	} else {
 		return false;
 	}
 }
@@ -251,7 +251,7 @@ function calcLoomNuInfinity(slot) {
 function calcAutoNuRatio(slot) {
 	nuloom();
 	var heirloom = getSelectedHeirloom();
-	
+
 	//Shield
 	if (heirloom.mods[slot][0] == "critChance")
 		return 100;
@@ -279,7 +279,7 @@ function calcAutoNuRatio(slot) {
 		return 50;
 	else if (heirloom.mods[slot][0] == "gammaBurst")
 		return 25;
-	
+
 	//Staff
 	else if (heirloom.mods[slot][0] == "FluffyExp")
 		return 100;
@@ -343,7 +343,7 @@ function nuRatio() {
     slot5r = (slot6 != 0 && calcLoomNuInfinity(5)) ? ((slot6 / total)*100) : 1;
 
     //Find Player ratio
-    if (getPageSetting('autonu') == true && getPageSetting('rationu') == 0 && getPageSetting('heirloomnu') != undefined) { 
+    if (getPageSetting('autonu') == true && getPageSetting('rationu') == 0 && getPageSetting('heirloomnu') != undefined) {
 	slot1spend = (getPageSetting('slot1nu') > 0 && calcLoomNuInfinity(0)) ? getPageSetting('slot1nu') : 0;
 	slot2spend = (getPageSetting('slot2nu') > 0 && calcLoomNuInfinity(1)) ? getPageSetting('slot2nu') : 0;
 	slot3spend = (getPageSetting('slot3nu') > 0 && calcLoomNuInfinity(2)) ? getPageSetting('slot3nu') : 0;
@@ -351,8 +351,8 @@ function nuRatio() {
 	slot5spend = (getPageSetting('slot5nu') > 0 && calcLoomNuInfinity(4)) ? getPageSetting('slot5nu') : 0;
 	slot5spend = (getPageSetting('slot6nu') > 0 && calcLoomNuInfinity(5)) ? getPageSetting('slot6nu') : 0;
 	}
-	
-    if (getPageSetting('autonu') == true && getPageSetting('rationu') == 1 && getPageSetting('heirloomnu') != undefined) { 
+
+    if (getPageSetting('autonu') == true && getPageSetting('rationu') == 1 && getPageSetting('heirloomnu') != undefined) {
 	slot1spend = (calcLoomNuInfinity(0)) ? calcAutoNuRatio(0) : 0;
 	slot2spend = (calcLoomNuInfinity(1)) ? calcAutoNuRatio(1) : 0;
 	slot3spend = (calcLoomNuInfinity(2)) ? calcAutoNuRatio(2) : 0;
@@ -516,7 +516,7 @@ function Rdhstributestaffequip() {
 }
 
 function Rheirloomswap() {
-	
+
 	//Swapping Shields
 	if (getPageSetting('Rhsshield') != false) {
 		if (getPageSetting('Rhsz') > 0 && game.global.world < getPageSetting('Rhsz')) {
@@ -541,7 +541,7 @@ function Rheirloomswap() {
 }
 
 function Rdheirloomswap() {
-	
+
 	//Swapping Shields
 	if (getPageSetting('Rdhsshield') != false) {
 		if (getPageSetting('Rdhsz') > 0 && game.global.world < getPageSetting('Rdhsz')) {
@@ -570,3 +570,121 @@ function HeirloomShieldSwapped() {
 	gammaBurstPct = (getHeirloomBonus("Shield", "gammaBurst") / 100) > 0 ? (getHeirloomBonus("Shield", "gammaBurst") / 100) : 1;
 	shieldEquipped = game.global.ShieldEquipped.id;
 }
+
+// Keep this helper function as provided before
+/**
+ * Attempts to find and equip a carried heirloom by its exact name.
+ * @param {string} heirloomName The exact name of the heirloom to equip.
+ */
+function equipNamedHeirloom(heirloomName) {
+	if (!heirloomName || typeof heirloomName !== 'string' || heirloomName.trim() === '') {
+		return; // Don't proceed if the name is invalid or empty
+	}
+	if (game.global.ShieldEquipped && game.global.ShieldEquipped.name === heirloomName) {
+		return; // Already equipped the correct one
+	}
+
+	var loomToEquip = null;
+	var loomIndex = -1;
+
+	if (game.global.heirloomsCarried && game.global.heirloomsCarried.length > 0) {
+		for (var i = 0; i < game.global.heirloomsCarried.length; i++) {
+			if (game.global.heirloomsCarried[i] && game.global.heirloomsCarried[i].name === heirloomName) {
+				loomToEquip = game.global.heirloomsCarried[i];
+				loomIndex = i;
+				break;
+			}
+		}
+	}
+
+	if (loomToEquip && loomIndex !== -1) {
+		try {
+			// Ensure the tooltip is hidden before attempting selection/equipping
+			cancelTooltip();
+			// Select and equip
+			selectHeirloom(loomIndex, "heirloomsCarried", true);
+			equipHeirloom();
+			debug("VoidMapHeirloomSwap: Equipped '" + heirloomName + "'", "heirlooms");
+			// Update the cached shield ID after swapping
+			HeirloomShieldSwapped();
+		} catch (e) {
+			debug("VoidMapHeirloomSwap: Error equipping '" + heirloomName + "': " + e.message, "heirlooms", '*error');
+		}
+	} else {
+		// Optionally log if not found - might be noisy if names aren't set
+		// debug("VoidMapHeirloomSwap: Could not find '" + heirloomName + "' in carried heirlooms.", "heirlooms", "*warning");
+	}
+}
+
+
+// NEW/REVISED Main function
+/**
+ * Main function to handle automatic heirloom swapping based on approaching Void Maps zone/cell.
+ */
+function VoidMapHeirloomSwap() {
+	// Check if the feature is enabled or if we aren't in U1
+	if (!getPageSetting('VoidMapHeirloomSwap') || game.global.universe !== 1) {
+		return;
+	}
+
+	// Get the names of the heirlooms from settings
+	var beforeHeirloomName = getPageSetting('VoidMapHeirloomBefore');
+	var duringHeirloomName = getPageSetting('VoidMapHeirloomAfter');
+
+	// Exit if neither name is specified
+	if (!beforeHeirloomName && !duringHeirloomName) {
+		return;
+	}
+
+	// Determine target zone and cell based on whether it's a Daily challenge
+	var targetZone, targetCell;
+	var isDaily = game.global.challengeActive === "Daily";
+
+	if (isDaily) {
+		targetZone = getPageSetting('DailyVoidMod');
+		// targetCell = getPageSetting('dvoidscell');
+	} else {
+		targetZone = getPageSetting('VoidMaps');
+		// targetCell = getPageSetting('voidscell');
+	}
+
+	// Validate target zone and cell settings
+	if (targetZone <= 0) { // No valid target zone set for current mode (Daily/Standard)
+		// Default to equipping the 'Before' heirloom if specified, otherwise do nothing
+		if (beforeHeirloomName) {
+			// equipNamedHeirloom(beforeHeirloomName);
+		}
+		return;
+	}
+	// if (targetCell <= 0) targetCell = 1; // Default to cell 1 if not specified
+
+	// Determine the current state
+	var currentZone = game.global.world;
+	// var currentCell = game.global.lastClearedCell + 1; // Next cell to be cleared
+
+	// Logic: Should we equip the "During" heirloom?
+	// This happens if we are IN the target zone AND AT or PAST the target cell.
+	var shouldEquipDuring = currentZone >= targetZone;
+
+	// Determine the target heirloom name based on the state
+	var targetHeirloomName = null;
+	if (shouldEquipDuring && duringHeirloomName) {
+		targetHeirloomName = duringHeirloomName;
+	} else if (!shouldEquipDuring && beforeHeirloomName) {
+		// If not in the "During" state, default to the "Before" state heirloom
+		targetHeirloomName = beforeHeirloomName;
+	}
+	// If neither condition above matched (e.g., `shouldEquipDuring` is true but no `duringHeirloomName` is set),
+	// `targetHeirloomName` remains null, and no swap will be attempted unless the other name is set.
+	// If `shouldEquipDuring` is false and no `beforeHeirloomName` is set, `targetHeirloomName` is null.
+
+
+	// If a valid target heirloom was determined, attempt to equip it
+	if (targetHeirloomName) {
+		equipNamedHeirloom(targetHeirloomName);
+	}
+}
+
+// Add these lines near the other shield lookup functions for consistency:
+function VoidMapHeirloomBefore(){for(loom of game.global.heirloomsCarried)if(loom.name==getPageSetting('VoidMapHeirloomBefore'))return loom;}
+function VoidMapHeirloomAfter(){for(loom of game.global.heirloomsCarried)if(loom.name==getPageSetting('VoidMapHeirloomAfter'))return loom;}

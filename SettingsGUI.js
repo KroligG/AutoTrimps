@@ -457,6 +457,10 @@ function initializeAllSettings() {
     createSetting('dRunNewVoidsUntilNew', 'Daily New Voids Mod', '<b>0 to disable. Positive numbers are added to your Void Map zone. -1 for no cap.</b> This allows you to run new Void Maps in Dailies obtained after your Void Map zone by adding this number to your Void Map zone. <br> <b>Example</b> Void map zone=187 and This setting=10. New Voids run until 197).<br>This means that any new void maps gained until Z197. CAUTION: May severely slow you down by trying to do too-high level void maps. Default 0 (OFF).', 'value', '0', null, 'Daily');
     createSetting('drunnewvoidspoison', 'New Voids Poison', 'Only run new voids in poison zones.', 'boolean', false, null, 'Daily');
 
+    createSetting('VoidMapHeirloomSwap', 'Enable Void Map Swap', 'Automatically swap shields right before running Void Maps.', 'boolean', false, null, 'Daily')
+    createSetting('VoidMapHeirloomBefore', 'Before Void Maps Heirloom','Enter the <b>exact</b> name of the Shield heirloom to equip <u>before</u> reaching the Void Map zone/cell.', 'textValue', 'undefined', null, 'Daily')
+    createSetting('VoidMapHeirloomAfter', 'At Void Maps Heirloom','Enter the <b>exact</b> name of the Shield heirloom to equip <u>at and after</u> the Void Map zone/cell trigger.', 'textValue', 'undefined', null, 'Daily')
+
     //RPortal Line
     document.getElementById('dlowdmg').parentNode.insertAdjacentHTML('afterend', '<br>');
     createSetting('RAutoStartDaily', 'Auto Start Daily', 'Starts Dailies for you. When you portal with this on, it will select the oldest Daily and run it. Use the settings in this tab to decide whats next. ', 'boolean', false, null, 'Daily');
@@ -919,7 +923,7 @@ function initializeAllSettings() {
     createSetting('Rhypocastle', 'Frozen Castle', 'What zone you wish you run frozen castle on to complete the challenge. Will run castle after voids so make sure thats set up right. ', 'value', '-1', null, 'Challenges');
     createSetting('Rhypovoids', 'After Voids', 'Only run Frozen castle after all voids have been completed. ', 'boolean', true, null, 'Challenges');
     createSetting('Rhypostorage', 'Storage', 'Turn this on to disable buying sheds unless you need more wood for your HF: Bonfire target price (AT AutoBuildings). Essentially this means you wont get accidently bonfires but you may lose out on smithies and shield prestiges. If you use vanilla autobuildings this setting is pointless. Disables AutoStorage until the first Bonfire farm zone that you reach during the challenge.', 'boolean', 'false', null, 'Challenges');
-    
+
     //Desolation
     createSetting('Rdesoon', 'Desolation', 'Turn on Desolation settings. This also controls the entireity of Desolation settings. If you turn this off it will not do anything in Desolation. ', 'boolean', 'false', null, 'Challenges');
     createSetting('Rdesozone', 'D: Zone', 'What zone to start D: H:D and D: Multiplier. ', 'value', '-1', null, 'Challenges');
@@ -1213,7 +1217,7 @@ function initializeAllSettings() {
 
     document.getElementById('Rchallengehidehypothermia').setAttribute('onclick', 'settingChanged("Rchallengehidehypothermia"), modifyParentNode("Rchallengehidehypothermia", "Rhypostorage")');
     modifyParentNode("Rchallengehidehypothermia", "Rhypostorage");
-    
+
     document.getElementById('Rchallengehidedeso').setAttribute('onclick', 'settingChanged("Rchallengehidedeso"), modifyParentNode("Rchallengehidedeso", "Rdesomult")');
     modifyParentNode("Rchallengehidedeso", "Rdesomult");
 
@@ -2214,7 +2218,7 @@ function updateCustomButtons() {
     radonon && getPageSetting('Rhypoon') == true ? turnOn("Rhypocastle") : turnOff("Rhypocastle");
     radonon && getPageSetting('Rhypoon') == true ? turnOn("Rhypovoids") : turnOff("Rhypovoids");
     radonon && getPageSetting('Rhypoon') == true ? turnOn("Rhypostorage") : turnOff("Rhypostorage");
-    
+
     //Desolation
     radonon ? turnOn("Rdesoon") : turnOff("Rdesoon");
     radonon && getPageSetting('Rdesoon') == true ? turnOn("Rdesozone") : turnOff("Rdesozone");
@@ -2307,7 +2311,7 @@ function updateCustomButtons() {
         turnOff("Rhypovoids");
         turnOff("Rhypostorage");
     }
-    
+
     if (getPageSetting('Rchallengehidedeso') == true) {
         turnOff("Rdesoon");
         turnOff("Rdesozone");
