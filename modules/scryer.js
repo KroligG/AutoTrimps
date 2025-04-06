@@ -38,7 +38,7 @@ function useScryerStance() {
         scryF = 'W';
         x = 5;
     }
-    
+
     var AutoStance = getPageSetting('AutoStance');
     function autoStanceFunctionScryer() {
         if ((getPageSetting('AutoStance') == 3) || (getPageSetting('use3daily') == true && game.global.challengeActive == "Daily")) windStance();
@@ -119,7 +119,7 @@ function useScryerStance() {
             return;
         }
     }
-    
+
     //No Essence
     if (USS && !MA && getPageSetting('screwessence') == true && countRemainingEssenceDrops() < 1) {
         autoStanceFunctionScryer();
@@ -145,8 +145,10 @@ function useScryerStance() {
             }
         }
 
+        var finalStanceToSet = optimizeWindScry(scry)
+
         //Set to scry if it won't kill us, or we are willing to die for it
-        setFormation(scry);
+        setFormation(finalStanceToSet);
         wantToScry = true;
         return;
     }
@@ -154,4 +156,26 @@ function useScryerStance() {
     //No reason to Scry
     autoStanceFunctionScryer();
     wantToScry = false;
+}
+
+const optimizeWindScry = (scry) => {
+    var optimizeWindScry = getPageSetting('optimizeWindScry') == true
+    var isWindUber = game.global.uberNature == 'Wind' // Check if Wind Uber is active
+    var enemy = getCurrentEnemy()
+
+    if (!optimizeWindScry || !enemy || !isWindUber || scry !== 4) {
+        return scry
+    }
+
+    var enemyHealth = enemy.health
+    var stanceMinDamage = calcOurDmg('min', false, true)
+
+    var stacks = game.empowerments.Wind.currentDebuffPower
+    var stacksFull = stacks >= 300
+
+    if (stanceMinDamage >= enemyHealth && !stacksFull) {
+        return 4 // S
+    } else {
+        return 5 // W
+    }
 }
